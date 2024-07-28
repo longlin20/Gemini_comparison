@@ -4,17 +4,20 @@ from langchain_community.document_loaders.text import TextLoader
 import random
 from langchain_community.document_loaders import PDFMinerLoader
 
+
 def load_txt(txt_name):
     txt = "data_file/" + txt_name
     loader = TextLoader(txt)
     docs = loader.load()
     return docs
 
+
 def load_pdf(pdf_name):
     pdf = "data_file/" + pdf_name
     loader = PDFMinerLoader(pdf)
     docs = loader.load()
     return docs
+
 
 def load_data(data_name, data_size):
     dataset = load_dataset(data_name, 'distractor')

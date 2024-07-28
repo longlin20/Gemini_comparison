@@ -17,7 +17,7 @@ from choose_llm import gemini_llm, gemini15_llm
 from custum_template import best_compare_template, retriever_only_context_template, best_compare_template2, \
     knowledge_full_context_template, knowledge_brief_answer_template, python_code_generation_template
 from data_processing import load_txt, load_pdf
-from embedding_documents import get_vertexai_embeddings, embedding_txt_documents, embedding_json_documents, \
+from embedding_documents import get_vertexai_embeddings, embedding_txt_documents, \
     embedding_pdf_documents
 
 seed(41)
@@ -29,10 +29,6 @@ def add_txt_data_to_vector_db(file_path, db_name, chunk_size, chunk_overlap):
 
 def add_pdf_data_to_vector_db(file_path, db_name, chunk_size, chunk_overlap):
     embedding_pdf_documents(file_path, db_name, chunk_size, chunk_overlap)
-
-
-def add_json_data_to_vector_db(file_path, db_name, chunk_size, chunk_overlap):
-    embedding_json_documents(file_path, db_name, chunk_size, chunk_overlap)
 
 
 # add_txt_data_to_vector_db("context.txt", "context_256_32", 256, 32)
@@ -120,12 +116,16 @@ def select_retriever(retriever_type, data_name, chunk_size, chunk_overlap, numbe
     else:
         raise ValueError(
             "Invalid retriever type. Please choose 'bm25', 'dense', 'parents', 'ensemble' or 'ensemble_code'.")
+
+
 """
 def remove_illegal_chars(text):
     # Removes common control characters and other illegal characters for Excel
     sanitized_text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', text)
     return sanitized_text
 """
+
+
 def generate_llm_answer_and_similarity(qa, llm, compare_llm, cross_encoder_model, question, ground_truth,
                                        compare_prompt, col_name, df, i, rag=True):
     gemini_sim_col_name = "similarity " + col_name
@@ -174,6 +174,7 @@ def sanitize_string(value: str) -> str:
         r'[\000-\010]|[\013-\014]|[\016-\037]'
     )
     return ILLEGAL_CHARACTERS_RE.sub("", value)
+
 
 def generate_llm_answer_and_similarity_with_rag(model, compare_model, retriever_type="", data_name="", chunk_size=0,
                                                 chunk_overlap=0,
@@ -239,7 +240,7 @@ generate_llm_answer_and_similarity_with_rag("gemini1.5", "gemini1.5", "ensemble"
 
 # NEED TO CHANGE THE DATABASE FOR CONTEXT(database_name) AND DAT FOR CONTEXT(data_name)
 
-#generate_llm_answer_and_similarity_with_rag("gemini1.0", "gemini1.5", compare_prompt=best_compare_template2(), input_excel_file="data_openai_humaneval.xlsx",
+# generate_llm_answer_and_similarity_with_rag("gemini1.0", "gemini1.5", compare_prompt=best_compare_template2(), input_excel_file="data_openai_humaneval.xlsx",
 #                                            col_name="answer", result_excel_file="results/humaneval/result_openai_humaneval_without_rag.xlsx", rag=False)
 
 """

@@ -81,24 +81,6 @@ def embedding_txt_documents(doc_name, directory, chunk_size, chunk_overlap):
     Chroma.from_documents(chunks, embedding, ids=ids, persist_directory=persist_directory)
 
 
-def embedding_json_documents(doc_name_dir, directory, chunk_size, chunk_overlap):
-    doc_name = "./data_file/" + doc_name_dir
-    with open(doc_name, 'r') as json_file:
-        code_strings = json.load(json_file)
-
-    python_splitter = RecursiveCharacterTextSplitter.from_language(
-        language=Language.PYTHON, chunk_size=chunk_size, chunk_overlap=chunk_overlap
-    )
-
-    python_docs = python_splitter.create_documents(code_strings)
-
-    embedding = get_vertexai_embeddings()
-
-    persist_directory = "./chroma_db/" + directory
-
-    Chroma.from_documents(python_docs, embedding, persist_directory=persist_directory)
-
-
 def embedding_pdf_documents(doc_name, directory, chunk_size, chunk_overlap):
 
     docs = load_pdf(doc_name)

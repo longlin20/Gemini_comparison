@@ -2,7 +2,7 @@ import pandas as pd
 
 
 def clean_code(code):
-    # Remove markdown code fences and any non-printable characters
+    # Remove Markdown code fences and any non-printable characters
     code = code.replace('```python', '').replace('```', '').strip()
     cleaned_code = ''.join(c if c.isprintable() or c in '\n\t ' else ' ' for c in code)
     return cleaned_code
