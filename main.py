@@ -14,8 +14,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter, Language
 from sentence_transformers import CrossEncoder
 
 from choose_llm import gemini_llm, gemini15_llm
-from custum_template import best_compare_template, retriever_only_context_template, best_compare_template2, \
-    knowledge_full_context_template, knowledge_brief_answer_template, python_code_generation_template
 from data_processing import load_txt, load_pdf
 from embedding_documents import get_vertexai_embeddings, embedding_txt_documents, \
     embedding_pdf_documents
@@ -116,14 +114,6 @@ def select_retriever(retriever_type, data_name, chunk_size, chunk_overlap, numbe
     else:
         raise ValueError(
             "Invalid retriever type. Please choose 'bm25', 'dense', 'parents', 'ensemble' or 'ensemble_code'.")
-
-
-"""
-def remove_illegal_chars(text):
-    # Removes common control characters and other illegal characters for Excel
-    sanitized_text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', text)
-    return sanitized_text
-"""
 
 
 def generate_llm_answer_and_similarity(qa, llm, compare_llm, cross_encoder_model, question, ground_truth,

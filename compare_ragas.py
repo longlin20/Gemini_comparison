@@ -1,6 +1,4 @@
 import logging
-import os
-
 import pandas as pd
 from datasets import Dataset
 from ragas import evaluate
