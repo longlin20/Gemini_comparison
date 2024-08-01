@@ -1,11 +1,10 @@
-import json
 import time
 from langchain_google_vertexai import VertexAIEmbeddings
 from typing import List
-from langchain_text_splitters import RecursiveCharacterTextSplitter, Language
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 
-from data_processing import load_txt, load_pdf
+from data_processing import load_document
 
 
 # Utility functions for Embeddings API with rate limiting
@@ -58,47 +57,27 @@ def get_vertexai_embeddings():
     return vertexai_embeddings
 
 
-def embedding_txt_documents(doc_name, directory, chunk_size, chunk_overlap):
-
-    docs = load_txt(doc_name)
-
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""],
-    )
-
+def embed_documents_from_text(doc_name: str, directory: str, chunk_size: int, chunk_overlap: int) -> None:
+    """
+    Embeds documents from a text file.
+    """
+    docs = load_document(doc_name, "txt")
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""])
     chunks = text_splitter.split_documents(docs)
-
-    for idx, split in enumerate(chunks):
-        split.metadata["ids"] = split.metadata["source"] + "-chunk" + str(idx)
-    ids = [chunks[i].metadata["ids"] for i in range(len(chunks))]
-
-    embedding = get_vertexai_embeddings()
-
-    persist_directory = "./chroma_db/" + directory
-
+    ids = [f"{chunk.metadata['source']}-chunk{idx}" for idx, chunk in enumerate(chunks)]
+    embedding = get_vertexai_embeddings(100, 5, "textembedding-gecko@001")
+    persist_directory = f"./chroma_db/{directory}"
     Chroma.from_documents(chunks, embedding, ids=ids, persist_directory=persist_directory)
 
 
-def embedding_pdf_documents(doc_name, directory, chunk_size, chunk_overlap):
-
-    docs = load_pdf(doc_name)
-
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""],
-    )
-
+def embed_documents_from_pdf(doc_name: str, directory: str, chunk_size: int, chunk_overlap: int) -> None:
+    """
+    Embeds documents from a PDF file.
+    """
+    docs = load_document(doc_name, "pdf")
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""])
     chunks = text_splitter.split_documents(docs)
-
-    for idx, split in enumerate(chunks):
-        split.metadata["ids"] = split.metadata["source"] + "-chunk" + str(idx)
-    ids = [chunks[i].metadata["ids"] for i in range(len(chunks))]
-
-    embedding = get_vertexai_embeddings()
-
-    persist_directory = "./chroma_db/" + directory
-
+    ids = [f"{chunk.metadata['source']}-chunk{idx}" for idx, chunk in enumerate(chunks)]
+    embedding = get_vertexai_embeddings(100, 5, "textembedding-gecko@001")
+    persist_directory = f"./chroma_db/{directory}"
     Chroma.from_documents(chunks, embedding, ids=ids, persist_directory=persist_directory)

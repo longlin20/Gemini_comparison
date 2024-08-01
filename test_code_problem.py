@@ -2,25 +2,44 @@ import pandas as pd
 
 
 def clean_code(code):
-    # Remove Markdown code fences and any non-printable characters
+    """
+    Remove Markdown code fences and non-printable characters from the code.
+
+    Args:
+        code (str): The code to be cleaned.
+
+    Returns:
+        str: The cleaned code.
+    """
     code = code.replace('```python', '').replace('```', '').strip()
     cleaned_code = ''.join(c if c.isprintable() or c in '\n\t ' else ' ' for c in code)
     return cleaned_code
 
-def evaluate_code(candidate_code, test_code, entry_point):
+
+def evaluate_code(code, test_code, entry_point):
+    """
+    Evaluate the candidate code against the test code.
+
+    Args:
+        code (str): The candidate code.
+        test_code (str): The test code.
+        entry_point (str): The entry point of the candidate code.
+
+    Returns:
+        bool: True if the code passes all test cases, False otherwise.
+    """
     global_vars = {}
-    candidate_code = clean_code(candidate_code)
-    print(f"Generated code (repr):\n{repr(candidate_code)}\n")
+    code = clean_code(code)
 
     try:
-        exec(candidate_code, global_vars)
+        exec(code, global_vars)
     except SyntaxError as e:
         print(f"SyntaxError in generated code: {e}")
-        print(f"Code with potential syntax error:\n{repr(candidate_code)}")
+        print(f"Code with potential syntax error:\n{repr(code)}")
         return False
     except Exception as e:
         print(f"Error executing generated code: {e}")
-        print(f"Code with potential execution error:\n{repr(candidate_code)}")
+        print(f"Code with potential execution error:\n{repr(code)}")
         return False
 
     candidate_func = global_vars.get(entry_point)
@@ -34,7 +53,7 @@ def evaluate_code(candidate_code, test_code, entry_point):
     for test_case in test_cases:
         test_func_code = f"from typing import List\ndef test_func(candidate):\n    {test_case.strip()}"
         local_vars = {'candidate': candidate_func}
-        print(f"Executing test case (repr):\n{repr(test_func_code)}\n")
+
         try:
             exec(test_func_code, {}, local_vars)
             local_vars['test_func'](candidate_func)
@@ -51,20 +70,17 @@ def evaluate_code(candidate_code, test_code, entry_point):
 
     return True
 
-def test():
-    df = pd.read_excel('results/humaneval2/result_openai_humaneval_without_rag.xlsx')
+def test_evaluation(filename):
+    """
+    Test the evaluation of the code.
+    """
+    df = pd.read_excel(filename)
 
-    for i in range(len(df)):
-        row = df.iloc[i]
-        test_code = row['test code']
-        entry_point = row['entry point']
-        generated_code = row['answer']
-        print(f"Evaluando ejemplo {i + 1}/{len(df)}")
+    for i, row in enumerate(df.iterrows()):
+        test_code, generated_code, entry_point = row[1]['test code'], row[1]['answer'], row[1]['entry point']
+        print(f"Evaluating example {i + 1}/{len(df)}")
         result = evaluate_code(generated_code, test_code, entry_point)
-        print(f"result: {result}")
+        print(f"Result: {result}")
         df.loc[i, "results"] = result
 
-    # Guardar los resultados en un archivo Excel
-    df.to_excel('results/humaneval2/result_openai_humaneval_without_rag2.xlsx', index=False)
-
-#test()
+    df.to_excel(f'{filename[:-5]}_2.xlsx', index=False)

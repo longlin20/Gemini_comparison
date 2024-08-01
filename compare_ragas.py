@@ -17,6 +17,13 @@ from ragas.metrics import (
 
 
 def configure_metrics(metrics, ragas_vertexai_llm):
+    """
+    Configures the LLM and embeddings for each metric.
+
+    Args:
+        metrics (list): List of metrics to configure.
+        ragas_vertexai_llm (LangchainLLMWrapper): The LLM to use.
+    """
     for m in metrics:
         m.llm = ragas_vertexai_llm  # Set the LLM for the metric
 
@@ -26,6 +33,16 @@ def configure_metrics(metrics, ragas_vertexai_llm):
 
 
 def read_excel_to_df(file_path, rag):
+    """
+    Reads an Excel file into a DataFrame.
+
+    Args:
+        file_path (str): Path to the Excel file.
+        rag (bool): Whether to read the 'contexts' column as a list.
+
+    Returns:
+        pd.DataFrame: The DataFrame containing the Excel data.
+    """
     df = pd.read_excel(file_path)
     df['answer'] = df['answer'].apply(lambda x: str(x))
     if rag:
@@ -33,11 +50,17 @@ def read_excel_to_df(file_path, rag):
     return df
 
 
-def convert_df_to_dataset(df):
-    return Dataset.from_pandas(df)
-
-
 def run_evaluation_sequential(dataset, metrics):
+    """
+    Runs the evaluation of a dataset in batches.
+
+    Args:
+        dataset (Dataset): The dataset to evaluate.
+        metrics (list): List of metrics to use.
+
+    Returns:
+        pd.DataFrame: The results of the evaluation.
+    """
     all_results = []
     try:
         for i in range(0, len(dataset), 30):
@@ -59,11 +82,26 @@ def run_evaluation_sequential(dataset, metrics):
 
 
 def save_results_to_excel(results_df, file_path):
+    """
+    Saves the results of an evaluation to an Excel file.
+
+    Args:
+        results_df (pd.DataFrame): The results to save.
+        file_path (str): The path to the Excel file.
+    """
     results_df.to_excel(file_path, index=False, engine='openpyxl')
     logging.info("Results successfully saved to {}".format(file_path))
 
-
 def evaluate_ragas_metrics(model, input_file_name, output_file_name, rag=True):
+    """
+    Evaluates the RAGAS metrics for a given model and input file.
+
+    Args:
+        model (str): The model to use ('gemini1.0' or 'gemini1.5').
+        input_file_name (str): The path to the input Excel file.
+        output_file_name (str): The path to the output Excel file.
+        rag (bool): Whether to use RAG-based processing (default is True).
+    """
     # Define the metrics to use in evaluation
     if rag:
         metrics = [
@@ -93,9 +131,7 @@ def evaluate_ragas_metrics(model, input_file_name, output_file_name, rag=True):
 
     # Read the Excel file into a DataFrame
     df = read_excel_to_df(input_file_name, rag)
-
-    # Convert the DataFrame to a Hugging Face Dataset with defined features
-    dataset = convert_df_to_dataset(df)
+    dataset = Dataset.from_pandas(df)
     print(dataset)
 
     # Run evaluation sequentially
@@ -103,20 +139,6 @@ def evaluate_ragas_metrics(model, input_file_name, output_file_name, rag=True):
 
     if not results_df.empty:
         logging.info(results_df.head())
-
-        # Save the results DataFrame to an Excel file
         save_results_to_excel(results_df, output_file_name)
     else:
         logging.info("Evaluation failed.")
-
-
-"""
-model = "gemini1.5"
-file_path = "../use_casse/all_results_exam/results_exam_ragas"
-all_items = os.listdir(file_path)
-files = [item for item in all_items if os.path.isfile(os.path.join(file_path, item))]
-
-for f in files:
-    input_file_name = output_file_name = os.path.join(file_path, f)
-    evaluate_ragas_metrics(model, input_file_name, output_file_name, rag = True)
-"""

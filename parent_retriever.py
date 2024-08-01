@@ -47,5 +47,4 @@ def get_parents_retriever():
     return retriever
 
 # docs = load_txt("set_file.txt")
-
 # retriever.add_documents(docs, ids=None)
